@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Redefinir Senha</title>
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f8f8f8;
+        }
+
+        /* Container principal dividindo tela em 2 colunas */
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Coluna esquerda: imagem de fundo + overlay escuro */
+        .left-section {
+            flex: 1.2;
+            /* Ajuste para mudar a proporção entre as colunas */
+            background: url('images/Papel de Parede.jpg') no-repeat center center;
+            background-size: cover;
+            position: relative;
+        }
+
+        /* Degradê para escurecer a imagem */
+        .left-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* Ajuste o gradiente para mais ou menos escuro */
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+        }
+
+        /* Coluna direita: formulário */
+        .right-section {
+            flex: 1;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            /* Necessário para o posicionamento absoluto do botão */
+        }
+
+        /* Botão "Voltar" posicionado no canto superior esquerdo */
+        .btn-voltar {
+            position: absolute;
+            top: 4rem;
+            left: 3rem;
+            background-color: #000;
+            color: #fff;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-voltar:hover {
+            background-color: #333;
+        }
+
+        .form-container {
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .form-container h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-container p {
+            margin-bottom: 2rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-container input[type="password"] {
+            width: 100%;
+            padding: 0.6rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        /* Botão "Cadastrar" */
+        .btn-submit {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #000;
+            color: #fff;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: #333;
+        }
+
+        /* Responsividade simples */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left-section,
+            .right-section {
+                flex: none;
+                width: 100%;
+                height: 50vh;
+                /* Ajuste conforme desejar */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <!-- Coluna esquerda: Imagem -->
+        <div class="left-section"></div>
+
+        <!-- Coluna direita: Formulário -->
+        <div class="right-section">
+            <!-- Botão "Voltar" no canto superior esquerdo -->
+            <button class="btn-voltar" type="button" @click="voltar">Voltar</button>
+
+            <div class="form-container">
+                <h1>Esqueci minha senha</h1>
+                <p>Cadastre a nova senha</p>
+
+                <form @submit.prevent="redefinirSenha">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" v-model="senha" placeholder="Digite sua senha" required />
+
+                    <label for="confirmaSenha">Senha</label>
+                    <input type="password" id="confirmaSenha" v-model="confirmaSenha" placeholder="Confirmar senha"
+                        required />
+
+                    <button class="btn-submit" type="submit">
+                        Cadastrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    senha: '',
+                    confirmaSenha: ''
+                };
+            },
+            methods: {
+                redefinirSenha() {
+                    // Lógica de redefinição de senha
+                    if (this.senha !== this.confirmaSenha) {
+                        alert('As senhas não conferem!');
+                        return;
+                    }
+                    alert(`Senha redefinida com sucesso!`);
+                },
+                voltar() {
+                    // Exemplo: voltar para a página anterior
+                    window.history.back();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biblioteca - Sugestões de Leitura</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            background: #f4f4f4;
+            color: #111;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            background: #f4f4f4;
+            width: 100vw;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px;
+            background: #eeeeee;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .sidebar-logo {
+            margin: 32px 0 16px 0;
+            width: 90px;
+            height: 90px;
+            background: #262c37;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo img {
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            margin-bottom: 36px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .sidebar-menu {
+            width: 100%;
+            list-style: none;
+            padding: 0 0 0 24px;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 15px;
+            color: #222;
+            transition: color 0.2s;
+        }
+
+        .sidebar-menu li.active,
+        .sidebar-menu li:hover {
+            color: #3751fe;
+            font-weight: 600;
+        }
+
+        .sidebar-menu li i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        /* Main area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            min-width: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: #222d36;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 58px 0 50px;
+            width: 100%;
+            box-sizing: border-box;
+            position: static !important;
+            /* Garante que não é sticky/fixed */
+            top: auto !important;
+            z-index: 1;
+            position: static !important;
+            top: auto !important;
+        }
+
+        .search-bar {
+            background: #eef0f2;
+            border-radius: 32px;
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            width: 480px;
+            border: none;
+            outline: none;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            width: 100%;
+            margin-left: 6px;
+            outline: none;
+            color: #222;
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            background: #eef0f2;
+            padding: 8px 22px 8px 12px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .user-avatar i {
+            margin-right: 8px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        /* Sugestões de leitura */
+        .suggestions-area {
+            flex: 1;
+            padding: 36px 56px;
+            background: #fff;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .suggestions-title {
+            font-size: 2.1rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            letter-spacing: -1px;
+        }
+
+        /* Carousel */
+        .carousel-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 44px;
+            margin-bottom: 26px;
+            position: relative;
+        }
+
+        .carousel-book {
+            width: 130px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .carousel-book img {
+            width: 112px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.09);
+            background: #eee;
+        }
+
+        .carousel-book-title {
+            font-size: 14px;
+            color: #232323;
+            font-weight: 500;
+            margin-bottom: 4px;
+            min-height: 36px;
+        }
+
+        .carousel-arrow {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #f4f4f4;
+            border-radius: 20px;
+            width: 36px;
+            height: 36px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: background 0.18s;
+        }
+
+        .carousel-arrow:hover {
+            background: #ebebeb;
+        }
+
+        .carousel-arrow.left {
+            left: -46px;
+        }
+
+        .carousel-arrow.right {
+            right: -46px;
+        }
+
+        @media (max-width: 900px) {
+            .header {
+                flex-direction: column;
+                height: auto;
+                padding: 24px 10px;
+            }
+
+            .main-content {
+                padding: 10px;
+            }
+
+            .suggestions-area {
+                padding: 24px 12px;
+            }
+
+            .carousel-row {
+                gap: 22px;
+            }
+
+            .sidebar {
+                width: 64px;
+            }
+
+            .sidebar-title,
+            .sidebar-menu li span {
+                display: none;
+            }
+
+            .sidebar-menu li i {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <img src="images/IconeLivro.png" alt="Logo Acervo">
+                </div>
+                <div class="sidebar-title">Acervo</div>
+                <ul class="sidebar-menu">
+                    <li class="active"><i class="fas fa-home"></i> <span>Home</span></li>
+                    <li><i class="fas fa-book"></i> <span>Acervo</span></li>
+                    <li><i class="fas fa-sticky-note"></i> <span>Minhas Notas</span></li>
+                    <li><i class="fas fa-list"></i> <span>Minhas Listas</span></li>
+                </ul>
+            </div>
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Header -->
+                <div class="header">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Digite o nome do livro/autor" v-model="search" />
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                        Nome Do Usuário
+                    </div>
+                </div>
+                <!-- Suggestions -->
+                <div class="suggestions-area">
+                    <div class="suggestions-title">Sugestões De Leitura</div>
+                    <!-- Carousel linha 1 -->
+                    <div class="carousel-row">
+                        <span class="carousel-arrow left" v-if="carouselIndex1 > 0" @click="carouselIndex1--"><i
+                                class="fas fa-chevron-left"></i></span>
+                        <div class="carousel-book" v-for="(book, idx) in visibleBooks1" :key="book.title">
+                            <img :src="book.img" :alt="book.title">
+                            <div class="carousel-book-title">{{ book.title }}</div>
+                        </div>
+                        <span class="carousel-arrow right" v-if="carouselIndex1 < booksRow1.length - booksPerRow"
+                            @click="carouselIndex1++"><i class="fas fa-chevron-right"></i></span>
+                    </div>
+                    <!-- Carousel linha 2 -->
+                    <div class="carousel-row">
+                        <span class="carousel-arrow left" v-if="carouselIndex2 > 0" @click="carouselIndex2--"><i
+                                class="fas fa-chevron-left"></i></span>
+                        <div class="carousel-book" v-for="(book, idx) in visibleBooks2" :key="book.title">
+                            <img :src="book.img" :alt="book.title">
+                            <div class="carousel-book-title">{{ book.title }}</div>
+                        </div>
+                        <span class="carousel-arrow right" v-if="carouselIndex2 < booksRow2.length - booksPerRow"
+                            @click="carouselIndex2++"><i class="fas fa-chevron-right"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FontAwesome CDN for icons -->
+    <script src="https://kit.fontawesome.com/ab40c166b7.js" crossorigin="anonymous"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    search: "",
+                    booksRow1: [
+                        { title: "Java: Como Programar", img: "images/Java - Como Programar.png" },
+                        { title: "Planejamento De Marketing Digital", img: "images/Planejamento de marketing digital.png" },
+                        { title: "Fórmulas E Funções Com Microsoft Office Excel 2007", img: "images/Fórmulas e Funções com Microsoft Office Excel 2007.png" },
+                        { title: "Administração E Planejamento Estratégico", img: "images/Administração e planejamento estratégico.png" },
+                        { title: "C#: Como Programar", img: "images/Csharp Como Programar.png" },
+                        { title: "Treinamento Em Linguagem C", img: "images/Treinamento em linguagem C.png" },
+                        { title: "Administração De Marketing", img: "images/Administração de Marketing.png" }
+                    ],
+                    booksRow2: [
+                        { title: "Engenharia De Software", img: "images/Engenharia de software.png" },
+                        { title: "Python: Escreva Seus Primeiros Programas", img: "images/Python - escreva seus primeiros programas.png" },
+                        { title: "Cálculo E Aplicações", img: "images/Cálculo e aplicações.png" },
+                        { title: "Practical Java 8: Lambdas, Streams And New Resources", img: "images/Practical java 8 - lambdas, streams and new resources.png" },
+                        { title: "Cálculo Numérico", img: "images/Cálculo numérico.png" },
+                        { title: "História Da Educação Física", img: "images/História da educação física.png" },
+                        { title: "Educação Ambiental E Gestão De Resíduos", img: "images/Educação Ambiental e Gestão de Resíduos.png" }
+                    ],
+                    booksPerRow: 7, // Quantos livros aparecem por vez
+                    carouselIndex1: 0,
+                    carouselIndex2: 0
+                }
+            },
+            computed: {
+                visibleBooks1() {
+                    return this.booksRow1.slice(this.carouselIndex1, this.carouselIndex1 + this.booksPerRow);
+                },
+                visibleBooks2() {
+                    return this.booksRow2.slice(this.carouselIndex2, this.carouselIndex2 + this.booksPerRow);
+                }
+            }
+        }).mount("#app");
+    </script>
+</body>
+
+</html>

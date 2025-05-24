@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meus Livros</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', Arial, sans-serif;
+            background: #f4f4f4;
+            color: #111;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            background: #f4f4f4;
+            width: 100vw;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 210px;
+            background: #eeeeee;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .sidebar-logo {
+            margin: 32px 0 16px 0;
+            width: 90px;
+            height: 90px;
+            background: #262c37;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo img {
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            margin-bottom: 28px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .sidebar-menu {
+            width: 100%;
+            list-style: none;
+            padding: 0 0 0 24px;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 15px;
+            color: #222;
+            transition: color 0.2s;
+        }
+
+        .sidebar-menu li.active,
+        .sidebar-menu li:hover {
+            color: #3751fe;
+            font-weight: 600;
+        }
+
+        .sidebar-menu li i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            min-width: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: #222d36;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 58px 0 50px;
+            width: 100%;
+            box-sizing: border-box;
+            position: static !important;
+            top: auto !important;
+            z-index: 1;
+        }
+
+        .search-bar {
+            background: #eef0f2;
+            border-radius: 32px;
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            width: 480px;
+            border: none;
+            outline: none;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            width: 100%;
+            margin-left: 6px;
+            outline: none;
+            color: #222;
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            background: #eef0f2;
+            padding: 8px 22px 8px 12px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .user-avatar i {
+            margin-right: 8px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        /* Page Title */
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 48px;
+            margin-left: 72px;
+            margin-bottom: 0;
+        }
+
+        /* Empty State Message */
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            text-align: center;
+            font-size: 22px;
+            color: #232323;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .main-content-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        @media (max-width: 900px) {
+            .header {
+                flex-direction: column;
+                height: auto;
+                padding: 24px 10px;
+            }
+
+            .main-content {
+                padding: 10px;
+            }
+
+            .sidebar {
+                width: 64px;
+            }
+
+            .sidebar-title,
+            .sidebar-menu li span {
+                display: none;
+            }
+
+            .sidebar-menu li i {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="sidebar-logo">
+                    <img src="images/IconeLivro.png" alt="Logo Acervo">
+                </div>
+                <div class="sidebar-title">Home</div>
+                <ul class="sidebar-menu">
+                    <li class="active"><i class="fas fa-home"></i> <span>Home</span></li>
+                    <li><i class="fas fa-book"></i> <span>Acervo</span></li>
+                    <li><i class="fas fa-sticky-note"></i> <span>Minhas Notas</span></li>
+                    <li><i class="fas fa-list"></i> <span>Minhas Listas</span></li>
+                </ul>
+            </div>
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Header -->
+                <div class="header">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Digite o nome do livro/autor" />
+                    </div>
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                        Nome Do Usuário
+                    </div>
+                </div>
+                <!-- Page Wrapper -->
+                <div class="main-content-wrapper">
+                    <div class="page-title">Meus Livros</div>
+                    <!-- Nenhum livro cadastrado -->
+                    <div class="empty-state">
+                        Você não adquiriu nenhum livro, adicione<br>
+                        livros pelo acervo.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FontAwesome CDN for icons -->
+    <script src="https://kit.fontawesome.com/ab40c166b7.js" crossorigin="anonymous"></script>
+    <script>
+        // Caso queira controlar livros depois com Vue
+        const { createApp } = Vue;
+        createApp({}).mount("#app");
+    </script>
+</body>
+
+</html>
