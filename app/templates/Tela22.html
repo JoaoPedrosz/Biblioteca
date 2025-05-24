@@ -420,48 +420,74 @@
         </div>
     </div>
 
-    <!-- FontAwesome CDN for icons -->
-    <script src="https://kit.fontawesome.com/ab40c166b7.js" crossorigin="anonymous"></script>
-    <script>
-        const { createApp } = Vue;
+<script src="https://kit.fontawesome.com/ab40c166b7.js" crossorigin="anonymous"></script>
+<script>
+  const { createApp } = Vue;
 
-        createApp({
-            data() {
-                return {
-                    search: "",
-                    livro: {
-                        nome: "",
-                        paginas: "",
-                        autor: "",
-                        idioma: "",
-                        isbn: "",
-                        categoria: "",
-                        editora: "",
-                        edicao: "",
-                        arquivoNome: "",
-                        descricao: ""
-                    },
-                    removerISBN: ""
-                }
-            },
-            methods: {
-                uploadLivro(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        this.livro.arquivoNome = file.name;
-                    }
-                },
-                cadastrarLivro() {
-                    alert("Livro cadastrado (simulado). Dados: " + JSON.stringify(this.livro, null, 2));
-                    // Aqui você pode enviar os dados para o backend
-                },
-                removerLivro() {
-                    alert("Livro com ISBN " + this.removerISBN + " removido (simulado).");
-                    // Aqui você pode chamar a função de remover livro no backend
-                }
-            }
-        }).mount("#app");
-    </script>
+  createApp({
+    data() {
+      return {
+        search: "",
+        livro: {
+          nome: "",
+          paginas: "",
+          autor: "",
+          idioma: "",
+          isbn: "",
+          categoria: "",
+          editora: "",
+          edicao: "",
+          arquivoNome: "",
+          descricao: ""
+        },
+        removerISBN: ""
+      }
+    },
+    methods: {
+      uploadLivro(e) {
+        const file = e.target.files[0];
+        if (file) {
+          this.livro.arquivoNome = file.name;
+        }
+      },
+      cadastrarLivro() {
+        fetch("/livros/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(this.livro)
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.mensagem || "Livro cadastrado com sucesso!");
+          // Limpa o formulário após o cadastro
+          this.livro = {
+            nome: "",
+            paginas: "",
+            autor: "",
+            idioma: "",
+            isbn: "",
+            categoria: "",
+            editora: "",
+            edicao: "",
+            arquivoNome: "",
+            descricao: ""
+          };
+        })
+        .catch(error => {
+          console.error("Erro ao cadastrar livro:", error);
+          alert("Erro ao cadastrar livro.");
+        });
+      },
+      removerLivro() {
+        alert("Livro com ISBN " + this.removerISBN + " removido (simulado).");
+        // Este será o próximo passo
+      }
+    }
+  }).mount("#app");
+</script>
+
 </body>
 
 </html>
