@@ -8,26 +8,29 @@
     <div class="right-section">
       <div class="form-container">
         <h1>Criar Nova Conta</h1>
-        <p class="already-have-account">
-          Já possui uma conta?
-          <router-link to="/login">Logar</router-link>
-        </p>
+
+        <div v-if="error" class="error-message">{{ error }}</div>
+        <div v-if="success" class="success-message">{{ success }}</div>
 
         <form @submit.prevent="criarConta">
           <label>Tipo de usuário</label>
           <div class="radio-group">
-            <label><input type="radio" value="usuario" v-model="tipo" /> Usuário</label>
-            <label><input type="radio" value="bibliotecario" v-model="tipo" /> Bibliotecário</label>
+            <label>
+              <input type="radio" value="usuario" v-model="tipo" /> Usuário
+            </label>
+            <label>
+              <input type="radio" value="bibliotecario" v-model="tipo" /> Bibliotecário
+            </label>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome</label>
-              <input id="nome" type="text" v-model="nome" placeholder="Nome" required />
+              <input id="nome" type="text" v-model="nome" required />
             </div>
             <div class="form-group">
               <label for="sobrenome">Sobrenome</label>
-              <input id="sobrenome" type="text" v-model="sobrenome" placeholder="Sobrenome" required />
+              <input id="sobrenome" type="text" v-model="sobrenome" required />
             </div>
           </div>
 
@@ -70,8 +73,15 @@
             required
           />
 
-          <button class="btn-submit" type="submit">Criar Conta</button>
+          <button class="btn-submit" type="submit" :disabled="loading">
+            {{ loading ? 'Cadastrando...' : 'Criar Conta' }}
+          </button>
         </form>
+
+        <p class="login-link">
+          Já tem conta?
+          <router-link to="/login">Login</router-link>
+        </p>
       </div>
     </div>
   </div>
@@ -89,96 +99,199 @@ export default {
       telefone: '',
       email: '',
       senha: '',
-      confirmaSenha: ''
+      confirmaSenha: '',
+      error: '',
+      success: '',
+      loading: false
     }
   },
   methods: {
-    criarConta() {
+    async criarConta() {
+      this.error = ''
+      this.success = ''
       if (this.senha !== this.confirmaSenha) {
-        return alert('As senhas não conferem!')
+        this.error = 'As senhas não conferem.'
+        return
       }
-      // chamada ao endpoint /register
-      alert(`Criando conta de ${this.tipo}: ${this.nome} ${this.sobrenome}`)
-      this.$router.push({ name: 'Login' })
+      this.loading = true
+      try {
+        const payload = {
+          tipo: this.tipo,
+          nome: this.nome,
+          sobrenome: this.sobrenome,
+          data_nascimento: this.dataNasc,
+          telefone: this.telefone,
+          email: this.email,
+          senha: this.senha
+        }
+        await this.$axios.post('/register', payload)
+        this.success = 'Conta criada com sucesso! Redirecionando…'
+        // aguarda um pouquinho pra mostrar a mensagem
+        setTimeout(() => {
+          this.$router.push({ name: 'Login' })
+        }, 1000)
+      } catch (err) {
+        this.error =
+          (err.response && err.response.data && err.response.data.erro) ||
+          'Falha ao criar conta.'
+      } finally {
+        this.loading = false
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-/* Reset e fontes */
-* { margin:0; padding:0; box-sizing:border-box; }
-body, .container { font-family: Arial, sans-serif; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body,
+.container {
+  font-family: Arial, sans-serif;
+}
 
 /* container duas colunas */
-.container { display:flex; width:100vw; height:100vh; }
+.container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
 
 /* imagem + overlay */
 .left-section {
-  flex:1.2;
+  flex: 1.2;
   background: url('~@/assets/papel-de-parede.jpg') no-repeat center center;
-  background-size:cover;
-  position:relative;
+  background-size: cover;
+  position: relative;
 }
 .left-section::before {
-  content:"";
-  position:absolute; inset:0;
+  content: "";
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0));
 }
 
 /* formulário */
 .right-section {
-  flex:1;
-  background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:2rem;
+  flex: 1;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
 }
 .form-container {
-  max-width:400px; width:100%;
+  max-width: 400px;
+  width: 100%;
 }
-.form-container h1 { font-size:1.8rem; margin-bottom:1rem; }
-.already-have-account {
-  margin-bottom:2rem; color:#555; line-height:1.4;
-}
-.already-have-account a {
-  color:#007bff; text-decoration:none;
-}
-.already-have-account a:hover { text-decoration:underline; }
 
-/* labels & inputs */
-label { display:block; margin-bottom:0.4rem; font-weight:bold; color:#333; }
+.form-container h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #d70000;
+  margin-bottom: 1rem;
+}
+
+.success-message {
+  color: #007700;
+  margin-bottom: 1rem;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.radio-group label {
+  font-weight: normal;
+  position: relative;
+  padding-left: 1.6rem;
+}
+.radio-group input[type="radio"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-top: 3px;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: bold;
+  color: #333;
+}
+
 input[type="text"],
 input[type="date"],
 input[type="tel"],
 input[type="email"],
 input[type="password"] {
-  width:100%; padding:0.6rem; margin-bottom:1rem;
-  border:1px solid #ccc; border-radius:4px; font-size:1rem;
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-/* radio group */
-.radio-group { display:flex; gap:1rem; margin-bottom:1rem; }
-.radio-group label { font-weight:normal; cursor:pointer; position:relative; padding-left:1.6rem; }
-.radio-group input[type="radio"] { position:absolute; left:0; top:0; margin-top:3px; }
-
-/* dois campos em linha */
-.form-row { display:flex; gap:1rem; margin-bottom:1rem; }
-.form-group { flex:1; }
-
-/* botão */
 .btn-submit {
-  display:inline-block; padding:0.8rem 1.5rem; font-size:1rem;
-  border:none; border-radius:4px; cursor:pointer;
-  background:#000; color:#fff; transition:background .2s;
+  display: inline-block;
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
-.btn-submit:hover { background:#333; }
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-submit:hover:not(:disabled) {
+  background: #333;
+}
 
-/* responsivo */
-@media (max-width:768px) {
-  .container { flex-direction:column; }
-  .left-section, .right-section { flex:none; width:100%; height:50vh; }
-  .form-row { flex-direction:column; }
+.login-link {
+  margin-top: 1rem;
+  text-align: center;
+}
+.login-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+  .left-section,
+  .right-section {
+    flex: none;
+    width: 100%;
+    height: 50vh;
+  }
 }
 </style>
