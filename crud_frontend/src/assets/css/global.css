@@ -1,0 +1,20 @@
+/* src/assets/css/global.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Fontes e cores globais */
+body,
+#app {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  background: #f4f4f4;
+  color: #222;
+  height: 100vh;
+}
