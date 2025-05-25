@@ -9,36 +9,41 @@
 
     <!-- Seção principal (Hero) -->
     <section class="hero">
-      <!-- Card de Login -->
       <div class="login-card" v-if="showLogin">
         <h2>Bem Vindo a JL!</h2>
 
-        <label for="email">Insira seu e-mail</label>
-        <input
-          type="email"
-          id="email"
-          v-model="email"
-          placeholder="E-mail"
-        />
+        <div v-if="error" class="error-message">{{ error }}</div>
 
-        <label for="password">Insira sua senha</label>
-        <input
-          type="password"
-          id="password"
-          v-model="password"
-          placeholder="Senha"
-        />
+        <form @submit.prevent="fazerLogin">
+          <label for="email">Insira seu e-mail</label>
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            placeholder="E-mail"
+            required
+          />
 
-        <router-link to="/forgot" class="forgot-password">
-          Esqueceu sua senha?
-        </router-link>
+          <label for="password">Insira sua senha</label>
+          <input
+            type="password"
+            id="password"
+            v-model="password"
+            placeholder="Senha"
+            required
+          />
 
-        <button class="btn-submit" @click="fazerLogin">Fazer login</button>
+          <router-link to="/forgot" class="forgot-password">
+            Esqueceu sua senha?
+          </router-link>
 
-        <p class="register-p">
-          Não tem uma conta?
-          <router-link to="/register">Registre-se</router-link>
-        </p>
+          <button type="submit" class="btn-submit">Fazer login</button>
+
+          <p class="register-p">
+            Não tem uma conta?
+            <router-link to="/register">Registre-se</router-link>
+          </p>
+        </form>
       </div>
     </section>
 
@@ -73,20 +78,38 @@ export default {
     return {
       showLogin: true,
       email: '',
-      password: ''
+      password: '',
+      error: ''
     }
   },
   methods: {
-    fazerLogin() {
-      alert(`Tentando fazer login com:\nE-mail: ${this.email}\nSenha: ${this.password}`)
-      // aqui você chamaria o endpoint de login e, em caso de sucesso:
-      // this.$router.push({ name: 'Home' })
+    async fazerLogin() {
+      this.error = ''
+      try {
+        const res = await this.$axios.post('/login', {
+          email: this.email,
+          password: this.password
+        })
+        const token = res.data.access_token
+        localStorage.setItem('access_token', token)
+        this.$axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
+        const tipo = res.data.user.tipo
+        if (tipo === 'bibliotecario') {
+          this.$router.push({ name: 'AdminDashboard' })
+        } else {
+          this.$router.push({ name: 'Home' })
+        }
+      } catch (err) {
+        this.error =
+          (err.response && err.response.data && err.response.data.erro) ||
+          'Falha ao fazer login.'
+      }
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
 /* Reset básico */
 * {
   margin: 0;
@@ -131,7 +154,7 @@ header {
 /* Hero full-screen */
 .hero {
   width: 100%;
-  height: 100vh; /* ocupa toda altura da viewport */
+  height: 100vh;
   background: url('~@/assets/papel-de-parede.jpg') no-repeat center center;
   background-size: cover;
   display: flex;
@@ -149,7 +172,7 @@ header {
   width: 300px;
   background-color: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   padding: 1.5rem;
 }
 .login-card h2 {
@@ -157,6 +180,14 @@ header {
   font-size: 1.3rem;
   color: #333;
 }
+
+/* Mensagem de erro */
+.error-message {
+  color: #d70000;
+  margin-bottom: 1rem;
+}
+
+/* Formulário */
 .login-card label {
   display: block;
   margin-top: 0.8rem;
@@ -193,6 +224,7 @@ header {
   border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 .btn-submit:hover {
   background-color: #343a40;

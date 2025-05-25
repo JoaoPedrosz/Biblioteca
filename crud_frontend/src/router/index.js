@@ -25,31 +25,73 @@ const routes = [
     path: '/',
     component: AuthLayout,
     children: [
-      { path: '', redirect: { name: 'Login' } },
-      { path: 'login', name: 'Login', component: Login },
-      { path: 'forgot', name: 'ForgotPassword', component: ForgotPassword },
-      { path: 'register', name: 'Register', component: Register }
+      {
+        path: '',
+        redirect: { name: 'Login' }
+      },
+      {
+        path: 'login',
+        name: 'Login',
+        component: Login
+      },
+      {
+        path: 'forgot',
+        name: 'ForgotPassword',
+        component: ForgotPassword
+      },
+      {
+        path: 'register',
+        name: 'Register',
+        component: Register
+      }
     ]
   },
   {
     path: '/admin',
     component: AdminLayout,
     children: [
-      { path: '', name: 'AdminDashboard', component: LibrarianDashboard },
-      { path: 'livros/new', name: 'BookForm', component: BookForm },
-      { path: 'solicitacoes', name: 'AccessRequests', component: AccessRequests },
-      { path: 'acervo', name: 'AdminAcervo', component: AdminAcervo }
+      {
+        path: '',
+        name: 'AdminDashboard',
+        component: LibrarianDashboard
+      },
+      {
+        path: 'livros/new',
+        name: 'BookForm',
+        component: BookForm
+      },
+      {
+        path: 'solicitacoes',
+        name: 'AccessRequests',
+        component: AccessRequests
+      },
+      {
+        path: 'acervo',
+        name: 'AdminAcervo',
+        component: AdminAcervo
+      }
     ]
   },
   {
     path: '/app',
     component: UserLayout,
     children: [
-      { path: '', name: 'Home', component: Home },
-      { path: 'acervo', name: 'Acervo', component: Acervo }
+      {
+        path: '',
+        name: 'Home',
+        component: Home
+      },
+      {
+        path: 'acervo',
+        name: 'Acervo',
+        component: Acervo
+      }
     ]
   },
-  { path: '*', redirect: { name: 'Login' } }
+  {
+    path: '*',
+    redirect: { name: 'Login' }
+  }
 ]
 
 const router = new VueRouter({
