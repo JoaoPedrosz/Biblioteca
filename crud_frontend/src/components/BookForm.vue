@@ -1,56 +1,130 @@
-<!-- src/components/BookForm.vue -->
 <template>
   <div class="admin-content">
-    <h1>Cadastrar Livro</h1>
-    <form @submit.prevent="cadastrarLivro" enctype="multipart/form-data">
+    <h1>{{ isEdit ? 'Editar Livro' : 'Cadastrar Livro' }}</h1>
+    <form @submit.prevent="salvarLivro" enctype="multipart/form-data">
       <div class="cadastro-fields">
+        <!-- Nome -->
         <div class="form-group">
           <label>Nome do Livro</label>
-          <input v-model="livro.nome" type="text" placeholder="Nome do Livro" required />
+          <input
+            v-model="livro.nome"
+            type="text"
+            placeholder="Nome do Livro"
+            required
+          />
         </div>
+
+        <!-- Páginas -->
         <div class="form-group">
           <label>Número de Páginas</label>
-          <input v-model="livro.paginas" type="number" placeholder="Número de Páginas" required />
+          <input
+            v-model="livro.paginas"
+            type="number"
+            placeholder="Número de Páginas"
+            required
+          />
         </div>
+
+        <!-- Autor -->
         <div class="form-group">
           <label>Nome do Autor</label>
-          <input v-model="livro.autor" type="text" placeholder="Nome do Autor" required />
+          <input
+            v-model="livro.autor"
+            type="text"
+            placeholder="Nome do Autor"
+            required
+          />
         </div>
+
+        <!-- Idioma -->
         <div class="form-group">
           <label>Idioma</label>
-          <input v-model="livro.idioma" type="text" placeholder="Idioma" required />
+          <input
+            v-model="livro.idioma"
+            type="text"
+            placeholder="Idioma"
+            required
+          />
         </div>
+
+        <!-- ISBN -->
         <div class="form-group">
           <label>Código ISBN</label>
-          <input v-model="livro.isbn" type="text" maxlength="13" placeholder="13 dígitos" required />
+          <input
+            v-model="livro.isbn"
+            :readonly="isEdit"
+            type="text"
+            maxlength="13"
+            placeholder="13 dígitos"
+            required
+          />
         </div>
+
+        <!-- Categoria -->
         <div class="form-group">
           <label>Categoria(s)</label>
-          <input v-model="livro.categoria" type="text" placeholder="Categoria" />
+          <input
+            v-model="livro.categoria"
+            type="text"
+            placeholder="Categoria"
+          />
         </div>
+
+        <!-- Editora -->
         <div class="form-group">
           <label>Nome da Editora</label>
-          <input v-model="livro.editora" type="text" placeholder="Nome da Editora" />
+          <input
+            v-model="livro.editora"
+            type="text"
+            placeholder="Nome da Editora"
+          />
         </div>
+
+        <!-- Edição -->
         <div class="form-group">
           <label>Edição</label>
-          <input v-model="livro.edicao" type="text" placeholder="Edição" />
+          <input
+            v-model="livro.edicao"
+            type="text"
+            placeholder="Edição"
+          />
         </div>
+
+        <!-- Disponível -->
+        <div class="form-group">
+          <label>
+            <input
+              type="checkbox"
+              v-model="livro.disponivel"
+            />
+            Disponível para empréstimo
+          </label>
+        </div>
+
+        <!-- Upload do arquivo -->
         <div class="form-group file-group">
-          <label>Upload do Livro</label>
+          <label>Upload do Livro (PDF ou imagem)</label>
           <input
             ref="upload"
             type="file"
             @change="onFileChange"
             style="display:none"
+            accept=".pdf,image/*"
           />
-          <button type="button" class="file-btn" @click="$refs.upload.click()">
+          <button
+            type="button"
+            class="file-btn"
+            @click="$refs.upload.click()"
+          >
             Escolher Arquivo
           </button>
-          <span v-if="livro.arquivoNome" class="file-name">{{ livro.arquivoNome }}</span>
+          <span v-if="livro.arquivoNome" class="file-name">
+            {{ livro.arquivoNome }}
+          </span>
         </div>
       </div>
 
+      <!-- Descrição -->
       <div class="form-group full-width">
         <label>Descrição</label>
         <textarea
@@ -61,17 +135,26 @@
         <div class="desc-helper">Deve ter no máximo 400 caracteres</div>
       </div>
 
-      <button type="submit" class="btn-primary">Cadastrar</button>
+      <!-- Botão salvar -->
+      <button type="submit" class="btn-primary">
+        {{ isEdit ? 'Atualizar' : 'Cadastrar' }}
+      </button>
     </form>
 
-    <hr />
+    <hr v-if="isEdit" />
 
-    <div class="remove-section">
+    <!-- Seção remover por ISBN (apenas no cadastro, não em edição) -->
+    <div class="remove-section" v-if="!isEdit">
       <h2>Remover Livro</h2>
       <form @submit.prevent="removerLivro">
         <div class="form-group">
           <label>Informe o Código ISBN</label>
-          <input v-model="removerISBN" type="text" placeholder="Código" required />
+          <input
+            v-model="removerISBN"
+            type="text"
+            placeholder="Código"
+            required
+          />
         </div>
         <button type="submit" class="btn-danger">Remover</button>
       </form>
@@ -82,6 +165,9 @@
 <script>
 export default {
   name: 'BookForm',
+  props: {
+    id: { type: String, default: null }
+  },
   data() {
     return {
       livro: {
@@ -94,10 +180,32 @@ export default {
         editora: '',
         edicao: '',
         arquivoNome: '',
-        descricao: ''
+        descricao: '',
+        disponivel: true
       },
       file: null,
       removerISBN: ''
+    }
+  },
+  computed: {
+    isEdit() {
+      return !!this.id
+    }
+  },
+  created() {
+    if (this.isEdit) {
+      // Carrega dados existentes para edição
+      this.$axios.get(`/livros/${this.id}`)
+        .then(res => {
+          Object.assign(this.livro, {
+            ...res.data,
+            arquivoNome: res.data.arquivo_nome || ''
+          })
+        })
+        .catch(() => {
+          alert('Erro ao carregar dados do livro.')
+          this.$router.back()
+        })
     }
   },
   methods: {
@@ -108,26 +216,73 @@ export default {
         this.livro.arquivoNome = f.name
       }
     },
-    async cadastrarLivro() {
+    async salvarLivro() {
       try {
         const fd = new FormData()
-        Object.entries(this.livro).forEach(([k, v]) => fd.append(k, v))
-        if (this.file) fd.append('arquivo', this.file)
-        await this.$axios.post('/livros', fd)
-        alert('Livro cadastrado com sucesso!')
-        Object.keys(this.livro).forEach(k => (this.livro[k] = ''))
-        this.file = null
+        Object.entries(this.livro).forEach(([k, v]) => {
+          fd.append(k, v)
+        })
+        if (this.file) {
+          fd.append('arquivo', this.file)
+        }
+
+        if (this.isEdit) {
+          await this.$axios.put(`/livros/${this.id}`, fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+          alert('Livro atualizado com sucesso!')
+        } else {
+          await this.$axios.post('/livros', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          })
+          alert('Livro cadastrado com sucesso!')
+          this.resetForm()
+        }
+
+        this.$router.push({ name: 'AdminAcervo' })
       } catch (err) {
-        alert('Erro ao cadastrar livro.')
+        let msg = 'Erro ao salvar livro.'
+        if (
+          err.response &&
+          err.response.data &&
+          err.response.data.erro
+        ) {
+          msg = err.response.data.erro
+        }
+        alert(msg)
       }
+    },
+    resetForm() {
+      this.livro = {
+        nome: '',
+        paginas: '',
+        autor: '',
+        idioma: '',
+        isbn: '',
+        categoria: '',
+        editora: '',
+        edicao: '',
+        arquivoNome: '',
+        descricao: '',
+        disponivel: true
+      }
+      this.file = null
     },
     async removerLivro() {
       try {
-        await this.$axios.delete(`/livros/${this.removerISBN}`)
+        await this.$axios.delete(`/livros/isbn/${this.removerISBN}`)
         alert('Livro removido com sucesso!')
         this.removerISBN = ''
       } catch (err) {
-        alert('Erro ao remover livro.')
+        let msg = 'Erro ao remover livro.'
+        if (
+          err.response &&
+          err.response.data &&
+          err.response.data.erro
+        ) {
+          msg = err.response.data.erro
+        }
+        alert(msg)
       }
     }
   }
@@ -150,9 +305,16 @@ export default {
   display: flex;
   flex-direction: column;
 }
-.form-group.full-width { flex-basis: 100%; }
-.file-group { flex-basis: 45%; }
-.form-group label { font-weight: 600; margin-bottom: 6px; }
+.form-group.full-width {
+  flex-basis: 100%;
+}
+.file-group {
+  flex-basis: 45%;
+}
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
 .form-group input,
 .form-group textarea {
   padding: 8px;
@@ -166,8 +328,15 @@ export default {
   border-radius: 6px;
   cursor: pointer;
 }
-.file-name { margin-top: 4px; color: #555; }
-.desc-helper { font-size: 0.9rem; color: #777; margin-top: 4px; }
+.file-name {
+  margin-top: 4px;
+  color: #555;
+}
+.desc-helper {
+  font-size: 0.9rem;
+  color: #777;
+  margin-top: 4px;
+}
 .btn-primary {
   background: #222;
   color: white;
@@ -177,8 +346,6 @@ export default {
   cursor: pointer;
   margin-top: 12px;
 }
-hr { margin: 30px 0; }
-.remove-section h2 { margin-bottom: 12px; }
 .btn-danger {
   background: #c62828;
   color: white;
@@ -186,5 +353,11 @@ hr { margin: 30px 0; }
   border: none;
   border-radius: 8px;
   cursor: pointer;
+}
+.remove-section {
+  margin-top: 40px;
+}
+.remove-section h2 {
+  margin-bottom: 12px;
 }
 </style>

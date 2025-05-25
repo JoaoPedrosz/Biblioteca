@@ -17,15 +17,12 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.before_app_request
 def ensure_indexes():
-    """
-    Reassegura que o índice único em 'email' esteja presente
-    antes de atender qualquer requisição.
-    """
+    """Garante índice único em 'email'."""
     current_app.db.usuarios.create_index("email", unique=True)
 
 
 #
-# ROTAS DE AUTENTICAÇÃO / USUÁRIO
+# AUTENTICAÇÃO E USUÁRIOS
 #
 
 @api_bp.route('/register', methods=['POST'])
@@ -47,6 +44,7 @@ def register():
         'status': 'ativo',
         'data_criacao': datetime.utcnow()
     }
+
     try:
         current_app.db.usuarios.insert_one(user_doc)
     except DuplicateKeyError:
@@ -70,6 +68,7 @@ def login():
         additional_claims={'tipo': user['tipo']},
         expires_delta=timedelta(hours=8)
     )
+
     return jsonify({
         'mensagem': 'Login bem-sucedido.',
         'access_token': access_token,
@@ -111,14 +110,19 @@ def perfil():
 @api_bp.route('/livros', methods=['GET'])
 @jwt_required()
 def listar_livros():
-    cursor = current_app.db.livros.find({}, {'_id': 1, 'nome': 1, 'autor': 1, 'isbn': 1})
+    cursor = current_app.db.livros.find(
+        {},
+        {'_id': 1, 'nome': 1, 'autor': 1, 'isbn': 1, 'arquivo_nome': 1, 'disponivel': 1}
+    )
     livros = []
     for doc in cursor:
         livros.append({
             'id': str(doc['_id']),
             'nome': doc.get('nome', ''),
             'autor': doc.get('autor', ''),
-            'isbn': doc.get('isbn', '')
+            'isbn': doc.get('isbn', ''),
+            'arquivo': doc.get('arquivo_nome', ''),
+            'disponivel': doc.get('disponivel', True)
         })
     return jsonify(livros), 200
 
@@ -128,16 +132,21 @@ def listar_livros():
 def criar_livro():
     data = request.form.to_dict()
     arquivo = request.files.get('arquivo')
+
+    # Campos obrigatórios
     required = ['nome','paginas','autor','idioma','isbn']
     missing = [f for f in required if not data.get(f)]
     if missing:
         return jsonify({'erro': f"Falta(s) campo(s): {', '.join(missing)}"}), 400
 
-    # Salva arquivo
+    # Salva arquivo (se houver)
     filename = None
     if arquivo:
         filename = f"{datetime.utcnow().timestamp()}_{arquivo.filename}"
         arquivo.save(f"{current_app.config['UPLOAD_FOLDER']}/{filename}")
+
+    # Converte dispoível (string) para booleano
+    disponivel = data.get('disponivel', 'true').lower() == 'true'
 
     livro_doc = {
         'nome': data['nome'],
@@ -151,8 +160,9 @@ def criar_livro():
         'arquivo_nome': filename,
         'descricao': data.get('descricao', ''),
         'data_criacao': datetime.utcnow(),
-        'user_id': ObjectId(get_jwt_identity())    # vincula ao usuário
+        'disponivel': disponivel
     }
+
     current_app.db.livros.insert_one(livro_doc)
     return jsonify({'mensagem': 'Livro cadastrado com sucesso.'}), 201
 
@@ -162,11 +172,19 @@ def criar_livro():
 def atualizar_livro(id_livro):
     data = request.get_json() or {}
     update = {}
-    for campo in ['nome','paginas','autor','idioma','categoria','editora','edicao','descricao']:
+
+    for campo in [
+        'nome','paginas','autor','idioma','categoria',
+        'editora','edicao','descricao','disponivel'
+    ]:
         if campo in data:
-            update[campo] = data[campo]
-    if 'paginas' in update:
-        update['paginas'] = int(update['paginas'])
+            if campo == 'paginas':
+                update['paginas'] = int(data['paginas'])
+            elif campo == 'disponivel':
+                update['disponivel'] = bool(data['disponivel'])
+            else:
+                update[campo] = data[campo]
+
     if not update:
         return jsonify({'erro': 'Nenhum campo para atualizar.'}), 400
 
@@ -198,24 +216,46 @@ def remover_livro_por_isbn(isbn):
     return jsonify({'mensagem': 'Livro removido com sucesso.'}), 200
 
 
+@api_bp.route('/livros/isbn/<isbn>', methods=['GET'])
+@jwt_required()
+def get_livro_por_isbn(isbn):
+    doc = current_app.db.livros.find_one({'isbn': isbn})
+    if not doc:
+        return jsonify({'erro': 'Livro não encontrado.'}), 404
+
+    livro = {
+        'id': str(doc['_id']),
+        'nome': doc.get('nome', ''),
+        'autor': doc.get('autor', ''),
+        'paginas': doc.get('paginas', 0),
+        'idioma': doc.get('idioma', ''),
+        'isbn': doc.get('isbn', ''),
+        'categoria': doc.get('categoria', ''),
+        'editora': doc.get('editora', ''),
+        'edicao': doc.get('edicao', ''),
+        'descricao': doc.get('descricao', ''),
+        'disponivel': doc.get('disponivel', True),
+        'arquivo': doc.get('arquivo_nome', '')
+    }
+    return jsonify(livro), 200
+
+
 #
-# MINHA ESTANTE / EMPRÉSTIMOS
+# EMPRÉSTIMOS (MINHA ESTANTE)
 #
 
 @api_bp.route('/meus-livros', methods=['GET'])
 @jwt_required()
 def meus_livros():
-    """
-    Retorna apenas os livros deste usuário, com base na coleção 'emprestimos'.
-    """
-    user_identity = get_jwt_identity()
-
-    # Encontra todos os empréstimos deste usuário
-    emprestimos = current_app.db.emprestimos.find({'id_usuario': user_identity})
+    user_id = get_jwt_identity()
+    emprestimos = current_app.db.emprestimos.find({
+        'id_usuario': user_id,
+        'data_devolucao_real': None
+    })
 
     resultados = []
     for emp in emprestimos:
-        isbn = str(emp.get('livro_isbn'))
+        isbn = emp.get('livro_isbn')
         livro = current_app.db.livros.find_one(
             {'isbn': isbn},
             {'_id': 1, 'nome': 1, 'arquivo_nome': 1}
@@ -228,3 +268,49 @@ def meus_livros():
             })
 
     return jsonify(resultados), 200
+
+
+#
+# RESERVAS / QR CODE
+#
+
+@api_bp.route('/reservar/<isbn>', methods=['POST'])
+@jwt_required()
+def reservar_livro(isbn):
+    user_id = get_jwt_identity()
+
+    livro = current_app.db.livros.find_one({'isbn': isbn})
+    if not livro:
+        return jsonify({'erro': 'Livro não encontrado.'}), 404
+    if not livro.get('disponivel', True):
+        return jsonify({'erro': 'Livro indisponível para reserva.'}), 400
+
+    ativos = current_app.db.emprestimos.count_documents({
+        'id_usuario': user_id,
+        'data_devolucao_real': None
+    })
+    if ativos >= 2:
+        return jsonify({'erro': 'Você já possui 2 livros emprestados.'}), 400
+
+    agora = datetime.utcnow()
+    validade = agora + timedelta(days=5)
+
+    emprestimo = {
+        'id_usuario': user_id,
+        'livro_isbn': isbn,
+        'data_emprestimo': agora,
+        'data_devolucao_prevista': validade,
+        'data_devolucao_real': None
+    }
+    current_app.db.emprestimos.insert_one(emprestimo)
+
+    current_app.db.livros.update_one(
+        {'_id': livro['_id']},
+        {'$set': {'disponivel': False}}
+    )
+
+    qr_text = f"Livro: {livro['nome']}\nISBN: {isbn}\nValidade: {validade.date().isoformat()}"
+    return jsonify({
+        'mensagem': 'Reserva realizada com sucesso.',
+        'qr_text': qr_text
+    }), 201

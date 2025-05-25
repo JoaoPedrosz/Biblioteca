@@ -8,7 +8,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import UserLayout from '@/layouts/UserLayout.vue'
 
-// Auth & Public
+// Public/Auth
 import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
 import ForgotPassword from '@/components/ForgotPassword.vue'
@@ -22,11 +22,12 @@ import AdminAcervo from '@/components/AdminAcervo.vue'
 // User
 import Home from '@/components/Home.vue'
 import Acervo from '@/components/Acervo.vue'
+import BookDetail from '@/components/BookDetail.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
-  // Rotas públicas / autenticação
+  // rotas públicas / auth
   {
     path: '/',
     component: AuthLayout,
@@ -38,53 +39,31 @@ const routes = [
     ]
   },
 
-  // Área do bibliotecário / admin
+  // área do bibliotecário (admin)
   {
     path: '/admin',
     component: AdminLayout,
     children: [
-      {
-        path: '',
-        name: 'AdminDashboard',
-        component: LibrarianDashboard
-      },
-      {
-        path: 'livros/new',
-        name: 'BookForm',
-        component: BookForm
-      },
-      {
-        path: 'solicitacoes',
-        name: 'AccessRequests',
-        component: AccessRequests
-      },
-      {
-        path: 'acervo',
-        name: 'AdminAcervo',
-        component: AdminAcervo
-      }
+      { path: '', name: 'AdminDashboard', component: LibrarianDashboard },
+      { path: 'livros/new', name: 'BookForm', component: BookForm },
+      { path: 'livros/:id', name: 'BookFormEdit', component: BookForm, props: true },
+      { path: 'solicitacoes', name: 'AccessRequests', component: AccessRequests },
+      { path: 'acervo', name: 'AdminAcervo', component: AdminAcervo }
     ]
   },
 
-  // Área do usuário comum
+  // área do usuário comum
   {
     path: '/app',
     component: UserLayout,
     children: [
-      {
-        path: '',
-        name: 'Home',
-        component: Home
-      },
-      {
-        path: 'acervo',
-        name: 'Acervo',
-        component: Acervo
-      }
+      { path: '', name: 'Home', component: Home },
+      { path: 'acervo', name: 'Acervo', component: Acervo },
+      { path: 'livro/:isbn', name: 'BookDetail', component: BookDetail, props: true }
     ]
   },
 
-  // Redireciona qualquer rota desconhecida para o login
+  // catch-all redireciona para login
   {
     path: '*',
     redirect: { name: 'Login' }

@@ -1,68 +1,87 @@
 <template>
-  <div class="acervo">
-    <h1>Sugestões De Leitura</h1>
-    <div v-if="livros.length" class="grid">
-      <div v-for="l in livros" :key="l.isbn" class="card">
-        <img :src="getCover(l)" alt="Capa" class="cover" />
-        <p class="title">{{ l.nome }}</p>
-      </div>
+  <div class="acervo-container">
+    <h1>Sugestões de Leitura</h1>
+    <div class="book-grid">
+      <router-link
+        v-for="livro in livros"
+        :key="livro.id"
+        :to="{ name: 'BookDetail', params: { isbn: livro.isbn } }"
+        class="book-card"
+      >
+        <img
+          class="book-cover"
+          :src="livro.arquivo
+            ? `${apiBase}/static/uploads/${livro.arquivo}`
+            : placeholder"
+          :alt="`Capa de ${livro.nome}`"
+        />
+        <div class="book-title">{{ livro.nome }}</div>
+      </router-link>
     </div>
-    <p v-else>Carregando acervo...</p>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
+const placeholder = require('@/assets/IconeLivro.png')
+
 export default {
   name: 'Acervo',
   data() {
     return {
-      livros: []
+      livros: [],
+      placeholder,
+      apiBase: axios.defaults.baseURL
     }
   },
-  async mounted() {
-    await this.fetchAcervo()
-  },
-  methods: {
-    async fetchAcervo() {
-      try {
-        const res = await this.$axios.get('/livros')
+  created() {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      this.$router.push({ name: 'Login' })
+      return
+    }
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
+
+    axios
+      .get('/livros')
+      .then(res => {
         this.livros = res.data
-      } catch (err) {
-        console.error('Erro ao buscar acervo', err)
-      }
-    },
-    getCover(livro) {
-      try {
-        return require(`@/assets/${livro.nome}.png`)
-      } catch (err) {
-        return require('@/assets/IconeLivro.png')
-      }
-    }
+      })
+      .catch(() => {
+        alert('Erro ao carregar acervo.')
+      })
   }
 }
 </script>
 
 <style scoped>
-.acervo {
-  max-width: 1200px;
-  margin: 0 auto;
+.acervo-container {
+  padding: 20px;
 }
-.grid {
+.book-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 24px;
 }
-.card {
-  width: 120px;
+.book-card {
+  width: 150px;
+  text-decoration: none;
+  color: inherit;
+}
+.book-cover {
+  width: 150px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #f0f0f0;
+}
+.book-title {
+  margin-top: 8px;
+  font-size: 0.9rem;
   text-align: center;
 }
-.cover {
-  width: 100%;
-  border-radius: 6px;
-}
-.title {
-  margin-top: 6px;
-  font-size: 0.9rem;
-  color: #222;
+.book-card:hover .book-cover {
+  transform: scale(1.05);
+  transition: transform 0.2s;
 }
 </style>

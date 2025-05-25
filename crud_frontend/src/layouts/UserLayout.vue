@@ -86,7 +86,7 @@ export default {
 #user-layout {
   display: grid;
   grid-template-columns: 220px 1fr;
-  grid-template-rows: 110px 1fr;
+  grid-template-rows: 80px 1fr;
   grid-template-areas:
     "sidebar header"
     "sidebar content";
@@ -97,16 +97,16 @@ export default {
 /* Sidebar */
 .sidebar {
   grid-area: sidebar;
-  background: #eeeeee;
+  background: #f8f9fa;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid #dee2e6;
   padding: 32px 0;
 }
 .sidebar-logo {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 16px;
@@ -117,19 +117,19 @@ export default {
   object-fit: cover;
 }
 .sidebar-title {
-  font-size: 18px;
-  margin-bottom: 36px;
+  font-size: 20px;
+  margin-bottom: 32px;
   color: #333;
-  font-weight: 500;
+  font-weight: 600;
 }
 .sidebar-menu {
   list-style: none;
   width: 100%;
-  padding-left: 36px;
+  padding-left: 32px;
 }
 .sidebar-menu li {
-  margin-bottom: 22px;
-  font-size: 17px;
+  margin-bottom: 20px;
+  font-size: 16px;
   transition: color 0.2s;
 }
 .sidebar-menu li.active,
@@ -137,7 +137,7 @@ export default {
   color: #3751fe;
   font-weight: 600;
 }
-.sidebar-menu li i {
+.sidebar-menu i {
   margin-right: 8px;
 }
 .sidebar-menu a {
@@ -154,29 +154,33 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 58px;
+  padding: 0 32px;
 }
 .search-bar {
   background: #eef0f2;
   border-radius: 32px;
-  padding: 8px 24px;
+  padding: 6px 16px;
   display: flex;
   align-items: center;
-  width: 480px;
+  width: 100%;
+  max-width: 500px;
+}
+.search-bar i {
+  color: #6c757d;
 }
 .search-bar input {
   background: transparent;
   border: none;
-  font-size: 18px;
-  margin-left: 6px;
+  font-size: 16px;
+  margin-left: 8px;
   outline: none;
   width: 100%;
-  color: #222;
+  color: #333;
 }
 .user-avatar {
   background: #eef0f2;
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 6px 12px;
+  border-radius: 24px;
   display: flex;
   align-items: center;
 }
@@ -193,19 +197,22 @@ export default {
 }
 /* Botão Sair */
 .btn-logout {
-  background: transparent;
+  background: #dc3545;
   border: none;
+  border-radius: 16px;
+  padding: 4px 12px;
   cursor: pointer;
   font-size: 14px;
-  color: #555;
+  color: #fff;
   display: flex;
   align-items: center;
+  transition: background 0.2s;
 }
 .btn-logout i {
   margin-right: 4px;
 }
 .btn-logout:hover {
-  color: #000;
+  background: #c82333;
 }
 
 /* Conteúdo */
@@ -213,6 +220,6 @@ export default {
   grid-area: content;
   background: #fff;
   overflow-y: auto;
-  padding: 20px;
+  padding: 24px;
 }
 </style>
