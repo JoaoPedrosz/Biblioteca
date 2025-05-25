@@ -47,7 +47,11 @@
       </div>
       <div class="user-avatar">
         <i class="fas fa-user-circle"></i>
-        Nome Do Usuário
+        <span class="user-name">{{ userNome }} {{ userSobrenome }}</span>
+        <button class="btn-logout" @click="logout">
+          <i class="fas fa-sign-out-alt"></i>
+          Sair
+        </button>
       </div>
     </header>
 
@@ -59,16 +63,36 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'AdminLayout',
   data() {
     return {
-      search: ''
+      search: '',
+      userNome: '',
+      userSobrenome: ''
     }
   },
   computed: {
     logo() {
       return require('@/assets/IconeLivro.png')
+    }
+  },
+  created() {
+    // Lê do localStorage o objeto user salvo no Login.vue
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    this.userNome = user.nome || ''
+    this.userSobrenome = user.sobrenome || ''
+  },
+  methods: {
+    logout() {
+      // Remove credenciais
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+      delete axios.defaults.headers.common['Authorization']
+      // Redireciona para login
+      this.$router.push({ name: 'Login' })
     }
   }
 }
@@ -83,6 +107,7 @@ export default {
     "sidebar header"
     "sidebar content";
   height: 100vh;
+  overflow: hidden;
 }
 
 /* Sidebar */
@@ -170,12 +195,33 @@ export default {
   border-radius: 20px;
   display: flex;
   align-items: center;
+}
+.user-avatar i {
+  margin-right: 8px;
+  font-size: 18px;
+  color: #555;
+}
+.user-name {
+  margin-right: 12px;
   font-size: 15px;
   font-weight: 500;
   color: #555;
 }
-.user-avatar i {
-  margin-right: 8px;
+/* Botão Sair */
+.btn-logout {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  align-items: center;
+}
+.btn-logout i {
+  margin-right: 4px;
+}
+.btn-logout:hover {
+  color: #000;
 }
 
 /* Conteúdo */

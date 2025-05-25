@@ -1,17 +1,34 @@
 <template>
-  <div class="admin-acervo">
-    <h1>Meus Livros Cadastrados</h1>
-    <div v-if="livros.length" class="grid">
-      <div v-for="l in livros" :key="l.isbn" class="card">
-        <img :src="getCover(l)" alt="Capa" class="cover" />
-        <p class="title">{{ l.nome }}</p>
-      </div>
-    </div>
-    <p v-else>Você não cadastrou nenhum livro ainda.</p>
+  <div class="admin-content">
+    <h1>Acervo de Livros</h1>
+    <table v-if="livros.length" class="acervo-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Autor</th>
+          <th>ISBN</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="livro in livros" :key="livro.id">
+          <td>{{ livro.nome }}</td>
+          <td>{{ livro.autor }}</td>
+          <td>{{ livro.isbn }}</td>
+          <td>
+            <button @click="editar(livro)" class="btn-edit">✏️</button>
+            <button @click="remover(livro.id)" class="btn-delete">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p v-else>Não há livros cadastrados.</p>
   </div>
 </template>
 
 <script>
+import livrosService from '@/services/livros'
+
 export default {
   name: 'AdminAcervo',
   data() {
@@ -19,54 +36,63 @@ export default {
       livros: []
     }
   },
-  async mounted() {
-    await this.fetchMeusLivros()
+  created() {
+    this.carregar()
   },
   methods: {
-    async fetchMeusLivros() {
-      try {
-        // supondo que o backend filtre por usuário logado via token
-        // aqui só simulamos pegando todos e filtrando por usuarioId=1
-        const res = await this.$axios.get('/livros')
-        // se o admin tiver id no localStorage, use ele:
-        const user = JSON.parse(localStorage.getItem('usuario') || '{}')
-        this.livros = res.data.filter(l => l.usuarioId === user.id)
-      } catch (err) {
-        console.error('Erro ao buscar meus livros', err)
-      }
+    carregar() {
+      livrosService.listar()
+        .then(res => {
+          this.livros = res.data
+        })
+        .catch(() => {
+          alert('Erro ao carregar livros.')
+        })
     },
-    getCover(livro) {
-      try {
-        return require(`@/assets/${livro.nome}.png`)
-      } catch (err) {
-        return require('@/assets/IconeLivro.png')
-      }
+    editar(livro) {
+      // Passa o objeto livro como parametro para o BookForm
+      this.$router.push({ name: 'BookForm', params: { livro } })
+    },
+    remover(id) {
+      if (!confirm('Confirmar remoção desse livro?')) return
+      livrosService.remover(id)
+        .then(() => this.carregar())
+        .catch(() => {
+          alert('Erro ao remover livro.')
+        })
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-acervo {
+.admin-content {
   max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
 }
-.grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-}
-.card {
-  width: 150px;
-  text-align: center;
-}
-.cover {
+.acervo-table {
   width: 100%;
-  border-radius: 8px;
+  border-collapse: collapse;
+  margin-top: 16px;
 }
-.title {
-  margin-top: 8px;
-  font-size: 0.95rem;
-  color: #222;
+.acervo-table th,
+.acervo-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+.btn-edit {
+  background: #ffeb3b;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+.btn-delete {
+  background: #f44336;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: white;
 }
 </style>

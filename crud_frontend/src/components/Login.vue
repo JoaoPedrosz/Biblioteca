@@ -4,32 +4,34 @@
     <!-- Cabeçalho -->
     <header>
       <div class="header-title">JL Library</div>
-      <button class="login-button" @click="showLogin = true">Login</button>
+      <button class="login-button" @click="showLogin = !showLogin">
+        {{ showLogin ? 'Fechar' : 'Login' }}
+      </button>
     </header>
 
-    <!-- Seção principal (Hero) -->
+    <!-- Seção principal -->
     <section class="hero">
-      <div class="login-card" v-if="showLogin">
-        <h2>Bem Vindo a JL!</h2>
+      <div v-if="showLogin" class="login-card">
+        <h2>Bem-vindo(a) à JL!</h2>
 
         <div v-if="error" class="error-message">{{ error }}</div>
 
         <form @submit.prevent="fazerLogin">
-          <label for="email">Insira seu e-mail</label>
+          <label for="email">E-mail</label>
           <input
-            type="email"
             id="email"
+            type="email"
             v-model="email"
-            placeholder="E-mail"
+            placeholder="Digite seu e-mail"
             required
           />
 
-          <label for="password">Insira sua senha</label>
+          <label for="senha">Senha</label>
           <input
+            id="senha"
             type="password"
-            id="password"
-            v-model="password"
-            placeholder="Senha"
+            v-model="senha"
+            placeholder="Digite sua senha"
             required
           />
 
@@ -53,7 +55,7 @@
         <h4>Sobre a JL Library</h4>
         <ul>
           <li><router-link to="/terms">Termos de uso</router-link></li>
-          <li><router-link to="/login">Fazer login</router-link></li>
+          <li><router-link to="/login">Login</router-link></li>
         </ul>
       </div>
       <div class="footer-section">
@@ -78,7 +80,7 @@ export default {
     return {
       showLogin: true,
       email: '',
-      password: '',
+      senha: '',
       error: ''
     }
   },
@@ -88,13 +90,22 @@ export default {
       try {
         const res = await this.$axios.post('/login', {
           email: this.email,
-          password: this.password
+          senha: this.senha
         })
+
+        // Captura token e dados do usuário
         const token = res.data.access_token
+        const user = res.data.user
+
+        // Salva no localStorage
         localStorage.setItem('access_token', token)
+        localStorage.setItem('user', JSON.stringify(user))
+
+        // Ajusta header padrão
         this.$axios.defaults.headers.common['Authorization'] = 'Bearer ' + token
-        const tipo = res.data.user.tipo
-        if (tipo === 'bibliotecario') {
+
+        // Redireciona de acordo com o tipo
+        if (user.tipo === 'bibliotecario') {
           this.$router.push({ name: 'AdminDashboard' })
         } else {
           this.$router.push({ name: 'Home' })
@@ -126,7 +137,7 @@ body {
 
 /* Cabeçalho */
 header {
-  background-color: #fff;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -144,8 +155,6 @@ header {
   padding: 0.6rem 1rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s ease;
 }
 .login-button:hover {
   background-color: #343a40;
@@ -153,32 +162,27 @@ header {
 
 /* Hero full-screen */
 .hero {
+  position: relative;
   width: 100%;
   height: 100vh;
   background: url('~@/assets/papel-de-parede.jpg') no-repeat center center;
   background-size: cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
 }
 
-/* Card de Login */
+/* Card de Login posicionado à direita */
 .login-card {
   position: absolute;
   top: 50%;
   right: 5%;
   transform: translateY(-50%);
-  width: 300px;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  width: 320px;
 }
 .login-card h2 {
   margin-bottom: 1rem;
-  font-size: 1.3rem;
-  color: #333;
 }
 
 /* Mensagem de erro */
@@ -192,85 +196,66 @@ header {
   display: block;
   margin-top: 0.8rem;
   font-weight: 600;
-  font-size: 0.9rem;
 }
 .login-card input {
   width: 100%;
-  padding: 0.4rem;
+  padding: 0.6rem;
   margin-top: 0.3rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 0.9rem;
 }
 .forgot-password {
   display: block;
-  margin: 0.5rem 0;
+  margin: 0.5rem 0 1rem;
+  font-size: 0.85rem;
   text-align: right;
-  font-size: 0.8rem;
   color: #007bff;
-  text-decoration: none;
 }
 .forgot-password:hover {
   text-decoration: underline;
 }
 .btn-submit {
-  display: block;
   width: 100%;
-  margin-top: 1rem;
   padding: 0.6rem;
-  background-color: #212529;
+  background: #212529;
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 .btn-submit:hover {
-  background-color: #343a40;
+  background: #343a40;
 }
 .register-p {
   margin-top: 1rem;
-  font-size: 0.85rem;
   text-align: center;
+  font-size: 0.85rem;
 }
 .register-p a {
   color: #007bff;
   text-decoration: none;
 }
-.register-p a:hover {
-  text-decoration: underline;
-}
 
 /* Rodapé */
 footer {
-  background-color: #212529;
+  background: #212529;
   color: #fff;
   padding: 1rem 2rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
 }
 .footer-section {
   margin: 0.5rem 0;
 }
 .footer-section h4 {
   margin-bottom: 0.5rem;
-  font-size: 1rem;
 }
 .footer-section ul {
   list-style: none;
 }
 .footer-section ul li a {
   color: #fff;
-  text-decoration: none;
-  font-size: 0.9rem;
-  display: block;
-  margin: 0.2rem 0;
-}
-.footer-section ul li a:hover {
-  text-decoration: underline;
 }
 .footer-section p {
   font-size: 0.9rem;
@@ -285,11 +270,9 @@ footer {
     position: static;
     transform: none;
     margin: 1rem auto;
-    right: 0;
   }
   footer {
     flex-direction: column;
-    align-items: flex-start;
   }
 }
 </style>
