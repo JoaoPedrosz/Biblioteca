@@ -1,20 +1,13 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
-import BootstrapVue from 'bootstrap-vue'
-import Vuelidate from 'vuelidate'
-import VueTheMask from 'vue-the-mask'
+import { createPinia } from 'pinia'
+import axios from 'axios'
 
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+axios.defaults.baseURL = 'http://localhost:5000'
 
-Vue.use(BootstrapVue)
-Vue.use(Vuelidate)
-Vue.use(VueTheMask)
-
-Vue.config.productionTip = false
-
-new Vue({
-  router,
-  render: h => h(App)
-}).$mount('#app')
+const app = createApp(App)
+app.use(router)
+app.use(createPinia())
+app.config.globalProperties.$axios = axios
+app.mount('#app')

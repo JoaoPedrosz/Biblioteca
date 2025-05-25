@@ -1,67 +1,28 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
+import Home        from '@/views/Home.vue'        // lista de livros
+import Login       from '@/components/Login.vue'
+import Register    from '@/components/Register.vue'
+import BookForm    from '@/components/BookForm.vue' // Tela22.html
+import BookList    from '@/components/BookList.vue' // Tela10.html
+// … importe outras telas conforme for criando …
 
-// Páginas
-import Login from '@/components/Login.vue'
-import Register from '@/components/Register.vue'
-import CarList from '@/components/CarList.vue'
-import CarForm from '@/components/CarForm.vue'
+const routes = [
+  { path: '/login',    name: 'Login',    component: Login },
+  { path: '/register', name: 'Register', component: Register },
+  { path: '/',         name: 'Home',     component: Home,      meta: { requiresAuth: true } },
+  { path: '/livros/new',name: 'BookForm', component: BookForm, meta: { requiresAuth: true } },
+  { path: '/livros',   name: 'BookList', component: BookList,  meta: { requiresAuth: true } },
+  // …
+]
 
-Vue.use(Router)
-
-const router = new Router({
-  mode: 'history',
-  routes: [
-    {
-      path: '/',
-      redirect: '/login'
-    },
-    {
-      path: '/login',
-      component: Login
-    },
-    {
-      path: '/register',
-      component: Register
-    },
-    {
-      path: '/carros',
-      component: CarList,
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/novo',
-      component: CarForm,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/editar/:id',
-      component: CarForm,
-      props: true,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '*',
-      redirect: '/login'
-    }
-  ]
+const router = createRouter({
+  history: createWebHistory(),
+  routes
 })
 
-// Proteção das rotas
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
-  const tipo = localStorage.getItem('tipo')
-
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!token) {
-      return next('/login')
-    }
-
-    if (to.matched.some(record => record.meta.requiresAdmin) && tipo !== 'admin') {
-      return next('/carros') // redireciona usuários comuns
-    }
-  }
-
+  const isAuth = !!localStorage.getItem('usuario')
+  if (to.meta.requiresAuth && !isAuth) return next({ name: 'Login' })
   next()
 })
 
